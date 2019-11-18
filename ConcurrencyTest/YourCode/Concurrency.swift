@@ -51,7 +51,10 @@ import Foundation
 /// * Showing work through git history
 ///
 
-
+/**
+Creates a useful message to show in Combine string.
+- Returns: A new combine string or Time out string.
+*/
 func loadMessage(completion: @escaping (String) -> Void) {
     
     var combineString : String = ""
@@ -62,6 +65,7 @@ func loadMessage(completion: @escaping (String) -> Void) {
         let group = DispatchGroup()
         group.enter()
         fetchMessageOne { (messageOne) in
+            // First message fetched
             combineString.append(messageOne)
             group.leave()
             print("blockOperationForMessageOne ended")
@@ -74,6 +78,7 @@ func loadMessage(completion: @escaping (String) -> Void) {
         let group = DispatchGroup()
         group.enter()
         fetchMessageTwo { (messageTwo) in
+            // Second message fetched
             combineString.append(" ")
             combineString.append(messageTwo)
             group.leave()
@@ -86,6 +91,7 @@ func loadMessage(completion: @escaping (String) -> Void) {
     lastBlockOperation?.completionBlock = {
         if lastBlockOperation?.isCancelled == false {
             DispatchQueue.main.async {
+                // Return two combine message
                 completion(combineString)
             }
         } else {
@@ -98,6 +104,7 @@ func loadMessage(completion: @escaping (String) -> Void) {
     operationQueue.addOperation(blockOperationForMessageOne)
     operationQueue.addOperation(blockOperationForMessageTwo)
     
+    // If message takes more than 2 seconds , it will automatically cancell all operations
     DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
         print("Cancelled")
         operationQueue.cancelAllOperations()
