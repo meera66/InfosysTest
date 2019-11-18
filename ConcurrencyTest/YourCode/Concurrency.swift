@@ -61,8 +61,8 @@ func loadMessage(completion: @escaping (String) -> Void) {
         print("blockOperationForMessageOne started")
         let group = DispatchGroup()
         group.enter()
-        fetchMessageOne { (message1) in
-            combineString.append(message1)
+        fetchMessageOne { (messageOne) in
+            combineString.append(messageOne)
             group.leave()
             print("blockOperationForMessageOne ended")
         }
@@ -73,9 +73,9 @@ func loadMessage(completion: @escaping (String) -> Void) {
         print("blockOperationForMessageTwo started")
         let group = DispatchGroup()
         group.enter()
-        fetchMessageTwo { (message2) in
+        fetchMessageTwo { (messageTwo) in
             combineString.append(" ")
-            combineString.append(message2)
+            combineString.append(messageTwo)
             group.leave()
             print("blockOperationForMessageTwo ended")
         }
