@@ -50,15 +50,56 @@ import Foundation
 /// * Code readability & matching apple naming guidelines
 /// * Showing work through git history
 ///
+
+
 func loadMessage(completion: @escaping (String) -> Void) {
     
-    fetchMessageOne { (messageOne) in
+    var combineString : String = ""
+    let operationQueue = OperationQueue()
+    operationQueue.maxConcurrentOperationCount = 1
+    let blockOperationForMessageOne = BlockOperation {
+        print("blockOperationForMessageOne started")
+        let group = DispatchGroup()
+        group.enter()
+        fetchMessageOne { (message1) in
+            combineString.append(message1)
+            group.leave()
+            print("blockOperationForMessageOne ended")
+        }
+        group.wait()
     }
     
-    fetchMessageTwo { (messageTwo) in
+    let blockOperationForMessageTwo = BlockOperation {
+        print("blockOperationForMessageTwo started")
+        let group = DispatchGroup()
+        group.enter()
+        fetchMessageTwo { (message2) in
+            combineString.append(" ")
+            combineString.append(message2)
+            group.leave()
+            print("blockOperationForMessageTwo ended")
+        }
+        group.wait()
     }
     
-    /// The completion handler that should be called with the joined messages from fetchMessageOne & fetchMessageTwo
-    /// Please delete this comment before submission.
-    completion("Good morning!")
+    weak var lastBlockOperation = blockOperationForMessageTwo
+    lastBlockOperation?.completionBlock = {
+        if lastBlockOperation?.isCancelled == false {
+            DispatchQueue.main.async {
+                completion(combineString)
+            }
+        } else {
+            DispatchQueue.main.async {
+                completion("Unable to load message - Time out exceeded")
+            }
+        }
+    }
+    
+    operationQueue.addOperation(blockOperationForMessageOne)
+    operationQueue.addOperation(blockOperationForMessageTwo)
+    
+    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+        print("Cancelled")
+        operationQueue.cancelAllOperations()
+    }
 }
